@@ -3,6 +3,7 @@ import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
 import personService from './services/PersonService';
+import Notification from './components/Notification';
 
 const App = () => {
 
@@ -20,6 +21,8 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [nameFilter, setNameFilter] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState(null);
+  const [notificationClass, setNotificationClass] = useState('');
 
   const onNameChange = (event) => setNewName(event.target.value);
   const onNumberChange = (event) => setNewNumber(event.target.value);
@@ -37,7 +40,16 @@ const App = () => {
                     .update(currentPerson.id, updatedPerson)
                     .then(returnedPerson => {
                       setPersons(persons.map(person => person.id === returnedPerson.id ? returnedPerson : person));
+                      setNotificationClass('success');
+                      setNotificationMessage(`${newName} updated successfully`);
+                      setTimeout(()=> setNotificationMessage(null),5000);
                     })
+                    .catch(error => {
+                      setPersons(persons.filter(person => person.id !== currentPerson.id))
+                      setNotificationClass('error');
+                      setNotificationMessage(`Information on ${newName} has already been removed from the server`);
+                      setTimeout(()=> setNotificationMessage(null),5000);
+                    });
       }
     } 
     else
@@ -49,6 +61,9 @@ const App = () => {
                     console.log(returnedPerson);
                     setPersons(persons.concat(returnedPerson));
                     setNameFilter('');
+                    setNotificationMessage(`${newName} added successfully`);
+                    setNotificationClass('success');            
+                    setTimeout(()=> setNotificationMessage(null),5000);
                   });
     } 
   }
@@ -61,14 +76,18 @@ const App = () => {
                 .deletePerson(id)
                 .then(() => {
                   setPersons(persons.filter(person => person.id !== id))
+                  setNotificationMessage(`${p.name} deleted successfully`);
+                  setNotificationClass('error');            
+                  setTimeout(()=> setNotificationMessage(null),5000);
                 })
+      
     }           
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
-      
+      <Notification message={notificationMessage} notificationClass={notificationClass}/>
       <Filter nameFilter={nameFilter} onChange={onNameFilterChange} />
 
       <h1>Add a new name</h1>
