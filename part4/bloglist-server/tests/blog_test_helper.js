@@ -51,11 +51,24 @@ const initialBlogs = [
     }  
 ];
 
-const blogsInDb = async () =>{
+
+const getNonExistingId = async () =>{
+    const newBlog = new Blog({
+        title :"Your brain on porn",
+        author :"Gary Wilson",
+        url: "www.yourbrainonporn.com",
+        likes: 150000
+    });
+    await newBlog.save();
+    await newBlog.remove();
+
+    return newBlog._id.toString();
+}
+const getBlogsInDb = async () =>{
     const blogs = await Blog.find({});
     return blogs.map(blog => blog.toJSON());
 }
 
 module.exports = {
-    initialBlogs, blogsInDb
+    initialBlogs, getBlogsInDb, getNonExistingId
 };
