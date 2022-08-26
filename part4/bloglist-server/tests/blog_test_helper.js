@@ -1,4 +1,6 @@
 const Blog = require("./../models/blog");
+const User = require("./../models/user");
+const bcrypt = require("bcrypt");
 
 const initialBlogs = [
     {
@@ -53,15 +55,22 @@ const initialBlogs = [
 
 
 const getNonExistingId = async () =>{
+
+    const user = await getTestUser();
     const newBlog = new Blog({
         title :"Your brain on porn",
         author :"Gary Wilson",
         url: "www.yourbrainonporn.com",
-        likes: 150000
+        likes: 150000,
+        user: user.id
     });
+
+    
     await newBlog.save();
     await newBlog.remove();
 
+    user.blogs = user.blogs.filter(b => b.id != newBlog.id);
+    await user.save();
     return newBlog._id.toString();
 }
 const getBlogsInDb = async () =>{
@@ -69,6 +78,23 @@ const getBlogsInDb = async () =>{
     return blogs.map(blog => blog.toJSON());
 }
 
+const addTestUser = async () => {
+
+    const testUser = new User({
+        username: "testuser123",
+        name: "Test User",
+        passwordHash: await bcrypt.hash("testuser123", 10),
+        blogs: []
+    });
+
+    await testUser.save();
+};
+
+const getTestUser = async () =>{
+    const users = await User.find({username: "testuser123"});
+    return users[0];
+}
+
 module.exports = {
-    initialBlogs, getBlogsInDb, getNonExistingId
+    initialBlogs, getBlogsInDb, getNonExistingId, addTestUser, getTestUser
 };
